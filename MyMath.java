@@ -1,5 +1,4 @@
-package math;
-public class MyMath2{
+public class MyMath{
     /* array function */
     public static int sum(int[] array){
 	int sum = 0;
