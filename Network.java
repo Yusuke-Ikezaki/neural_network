@@ -1,13 +1,11 @@
-import math.MyMath2.*;
-
-public class Net{
+public class Network{
     private int num_layers;
     private int[] sizes;
     private Matrix[] biases;
     private Matrix[] weights;
     private Cost cost;
 
-    public Net(int... sizes){
+    public Network(int... sizes){
 	num_layers = sizes.length;
 	this.sizes = sizes;
 	default_weight_initializer();
@@ -25,13 +23,6 @@ public class Net{
 	    weights[i] = new Matrix(sizes[i + 1], sizes[i]);
 	    weights[i] = Matrix.matdiv(weights[i], Math.sqrt(sizes[i]));
 	}
-	/*
-	for(Matrix w: weights)
-	    System.out.print(w);
-	for(Matrix b: biases)
-	    System.out.print(b);
-	System.out.println();
-	*/
     }
     public void large_weight_initializer(){
 	biases = new Matrix[sizes.length - 1];
@@ -104,9 +95,6 @@ public class Net{
 	    activations[i + 1] = activation;
 	}
 	Matrix delta = cost.delta(zs[zs.length - 1], activations[activations.length - 1], y);
-	//System.out.print(activations[activations.length - 1]);
-	//System.out.println(cost.fn(activations[activations.length - 1], y));
-	//System.out.print(Matrix.matsub(activations[activations.length - 1], y));
 	nabla_b[nabla_b.length - 1] = delta;
 	nabla_w[nabla_w.length - 1] =
 	    Matrix.dot(delta, activations[activations.length - 2].transpose());
@@ -129,8 +117,6 @@ public class Net{
 	    test_results[i] = new Pair(feedforward(test_data[i].getFirst()), test_data[i].getSecond());
 	int sum = 0;
 	for(int i = 0; i < test_results.length; i++){
-	    System.out.print(test_results[i].getFirst());
-	    System.out.println(test_results[i].getSecond());
 	    test_results[i].getFirst().zero_one(0.5);
 	    if(Matrix.equal(test_results[i].getFirst(), test_results[i].getSecond())) sum++;
 	}
