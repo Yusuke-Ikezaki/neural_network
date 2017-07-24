@@ -22,4 +22,4 @@
 hs_err_pid*
 
 # Emacs Auto Backup Files
-\#*#
+*.java~
