@@ -127,6 +127,38 @@ public class MyMath{
 		    s.mat[i][j] = sigmoid_prime(x.mat[i][j]);
 	    return s;
 	}
+	public static Matrix tanh(Matrix x){
+	    Matrix t = new Matrix(x.row, x.column, 0.0);
+	    for(int i = 0; i < x.row; i++)
+		for(int j = 0; j < x.column; j++)
+		    t.mat[i][j] = Math.tanh(x.mat[i][j]);
+	    return t;
+	}
+	public static Matrix tanh_prime(Matrix x){
+	    return Matrix.matmul(4, sigmoid_prime(Matrix.matmul(2, x)));
+	}
+	public static double relu(double x){
+	    if(x >= 0) return x;
+	    else return 0;
+	}
+	public static Matrix relu(Matrix x){
+	    Matrix r = new Matrix(x.row, x.column, 0.0);
+	    for(int i = 0; i < x.row; i++)
+		for(int j = 0; j < x.column; j++)
+		    r.mat[i][j] = relu(x.mat[i][j]);
+	    return r;
+	}
+	public static double relu_prime(double x){
+	    if(x >= 0) return 1;
+	    else return 0;
+	}
+	public static Matrix relu_prime(Matrix x){
+	    Matrix r = new Matrix(x.row, x.column, 0.0);
+	    for(int i = 0; i < x.row; i++)
+		for(int j = 0; j < x.column; j++)
+		    r.mat[i][j] = relu_prime(x.mat[i][j]);
+	    return r;
+	}
     }
 	
     /* random function */
@@ -408,6 +440,21 @@ public class MyMath{
 		    if(mat[i][j] >= threshold) mat[i][j] = 1.0;
 		    else mat[i][j] = 0.0;
 		}
+	}
+	public void onehot(){
+	    double max = mat[0][0];
+	    int max_index_i = 0;
+	    int max_index_j = 0;
+	    for(int i = 0; i < row; i++)
+		for(int j = 0; j < column; j++){
+		    if(mat[i][j] > max){
+			max = mat[i][j];
+			max_index_i = i;
+			max_index_j = j;
+		    }
+		    mat[i][j] = 0.0;
+		}
+	    mat[max_index_i][max_index_j] = 1.0;
 	}
 	/* print format */
 	public String toString(){
