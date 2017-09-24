@@ -1,3 +1,5 @@
+import lib.MyMath.*;
+
 public class Network{
     private int num_layers;
     private int[] sizes;
@@ -43,7 +45,7 @@ public class Network{
 	if(test_data != null) n_test = test_data.length;
 	int n = training_data.length;
 	for(int i = 0; i < epochs; i++){
-	    //Random.shuffle(training_data);
+	    Random.shuffle(training_data);
 	    Pair[] mini_batch = new Pair[mini_batch_size];
 	    for(int j = 0; j < n; j += mini_batch_size){
 		for(int k = 0; k < mini_batch_size; k++)
