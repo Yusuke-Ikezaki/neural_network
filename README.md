@@ -3,6 +3,8 @@ neural network by Java
 
 ## Sample code
 ```java:Sample.java
+import lib.MyMath.*;
+
 public class Sample {
     public static void main(String[] args) {
         /* load train data */  
