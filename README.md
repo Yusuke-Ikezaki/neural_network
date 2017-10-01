@@ -3,10 +3,12 @@ neural network by Java
 
 ## How to use
 
-```Compile
+**Compile**
+```
 $ javac Test.java
 ```
 
+**Execute**
 ```Execute
 $ java Test
 ```
