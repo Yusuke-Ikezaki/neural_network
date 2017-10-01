@@ -26,3 +26,6 @@ hs_err_pid*
 
 # Test File
 Test.java
+
+# Dataset
+dataset/

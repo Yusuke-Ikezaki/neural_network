@@ -6,16 +6,29 @@ public class Network{
     private Matrix[] biases;
     private Matrix[] weights;
     private Cost cost;
+    private Activation activation;
+    private double p_dropout;
 
     public Network(int... sizes){
 	num_layers = sizes.length;
 	this.sizes = sizes;
 	default_weight_initializer();
 	cost = new CrossEntropyCost();
+	activation = new Sigmoid();
+	p_dropout = 0.0;
     }
 
-    public void set_quoadratic_cost(){
+    public void setQuoadraticCost(){
 	cost = new QuadraticCost();
+    }
+    public void setTanh(){
+	activation = new Tanh();
+    }
+    public void setReLU(){
+	activation = new ReLU();
+    }
+    public void setDropout(double p_dropout){
+	this.p_dropout = p_dropout;
     }
     public void default_weight_initializer(){
 	biases = new Matrix[sizes.length - 1];
@@ -36,7 +49,7 @@ public class Network{
     }
     public Matrix feedforward(Matrix a){
 	for(int i = 0; i < num_layers - 1; i++)
-	    a = Function.sigmoid(Matrix.matadd(Matrix.dot(weights[i], a), biases[i]));
+	    a = activation.fn(Matrix.matadd(Matrix.dot(weights[i], a), biases[i]));
 	return a;
     }
     public void SGD(Pair[] training_data, int epochs, int mini_batch_size,
@@ -86,27 +99,28 @@ public class Network{
 	Matrix[] nabla_w = new Matrix[weights.length];
 	for(int i = 0; i < weights.length; i++)
 	    nabla_w[i] = new Matrix(weights[i].getRow(), weights[i].getColumn(), 0.0);
-	Matrix activation = x;
-	Matrix[] activations = new Matrix[num_layers];
-	activations[0] = x;
+	Matrix a = x;
+	Matrix[] as = new Matrix[num_layers];
+	as[0] = x;
 	Matrix[] zs = new Matrix[num_layers];
 	for(int i = 0; i < num_layers - 1; i++){
-	    Matrix z = Matrix.matadd(Matrix.dot(weights[i], activation), biases[i]);
+	    Matrix z = Matrix.matadd(Matrix.dot(weights[i], a), biases[i]);
 	    zs[i + 1] = z;
-	    activation = Function.sigmoid(z);
-	    activations[i + 1] = activation;
+	    if(i == num_layers - 2) a = activation.fn(z);
+	    else a = dropout(activation.fn(z));
+	    as[i + 1] = a;
 	}
-	Matrix delta = cost.delta(zs[zs.length - 1], activations[activations.length - 1], y);
+	Matrix delta = cost.delta(zs[zs.length - 1], as[as.length - 1], y);
 	nabla_b[nabla_b.length - 1] = delta;
 	nabla_w[nabla_w.length - 1] =
-	    Matrix.dot(delta, activations[activations.length - 2].transpose());
+	    Matrix.dot(delta, as[as.length - 2].transpose());
 	for(int i = 2; i < num_layers; i++){
 	    Matrix z = zs[zs.length - i];
-	    Matrix spv = Function.sigmoid_prime(z);
+	    Matrix spv = activation.dfn(z);
 	    delta = Matrix.matmul(Matrix.dot(weights[weights.length - i + 1].transpose(), delta), spv);
 	    nabla_b[nabla_b.length - i] = delta;
 	    nabla_w[nabla_w.length - i] = 
-		Matrix.dot(delta, activations[activations.length - i - 1].transpose());
+		Matrix.dot(delta, as[as.length - i - 1].transpose());
 	}
 	Pair[] nablas = new Pair[num_layers - 1];
 	for(int i = 0; i < nablas.length; i++)
@@ -119,7 +133,8 @@ public class Network{
 	    test_results[i] = new Pair(feedforward(test_data[i].getFirst()), test_data[i].getSecond());
 	int sum = 0;
 	for(int i = 0; i < test_results.length; i++){
-	    test_results[i].getFirst().zero_one(0.5);
+	    test_results[i].getFirst().onehot();
+	    //test_results[i].getFirst().zero_one(0.5);
 	    if(Matrix.equal(test_results[i].getFirst(), test_results[i].getSecond())) sum++;
 	}
      	return sum;
@@ -127,25 +142,61 @@ public class Network{
     public Matrix cost_derivative(Matrix output_activations, Matrix y){
 	return Matrix.matsub(output_activations, y);
     }
-}
+    public Matrix dropout(Matrix a){
+	for(int i = 0; i < a.getRow(); i++)
+	    for(int j = 0; j < a.getColumn(); j++){
+		double rand = Math.random();
+		if(rand < p_dropout) a.setMat(i, j, 0.0);
+	    }
+	return a;
+    }
 
-abstract class Cost{
-    abstract public double fn(Matrix a, Matrix y);
-    abstract public Matrix delta(Matrix z, Matrix a, Matrix y);
-}
-class QuadraticCost extends Cost{
-    public double fn(Matrix a, Matrix y){
-	return 0.5 * Math.pow(Matrix.matsub(a, y).norm(), 2.0);
+    abstract class Activation{
+	abstract public Matrix fn(Matrix x);
+	abstract public Matrix dfn(Matrix x);
     }
-    public Matrix delta(Matrix z, Matrix a, Matrix y){
-	return Matrix.matmul(Matrix.matsub(a, y), Function.sigmoid_prime(z));
+    class Sigmoid extends Activation{
+	public Matrix fn(Matrix x){
+	    return Function.sigmoid(x);
+	}
+	public Matrix dfn(Matrix x){
+	    return Function.sigmoid_prime(x);
+	}
     }
-}
-class CrossEntropyCost extends Cost{
-    public double fn(Matrix a, Matrix y){
-	return Matrix.matsub(Matrix.matmul(Matrix.matmul(-1.0, y), Function.log(a)), Matrix.matmul(Matrix.matsub(1.0, y), Function.log(Matrix.matsub(1.0, a)))).sum();
+    class Tanh extends Activation{
+	public Matrix fn(Matrix x){
+	    return Function.tanh(x);
+	}
+	public Matrix dfn(Matrix x){
+	    return Function.tanh_prime(x);
+	}
     }
-    public Matrix delta(Matrix z, Matrix a, Matrix y){
-	return Matrix.matsub(a, y);
+    class ReLU extends Activation{
+	public Matrix fn(Matrix x){
+	    return Function.relu(x);
+	}
+	public Matrix dfn(Matrix x){
+	    return Function.relu_prime(x);
+	}
+    }
+    abstract class Cost{
+	abstract public double fn(Matrix a, Matrix y);
+	abstract public Matrix delta(Matrix z, Matrix a, Matrix y);
+    }
+    class QuadraticCost extends Cost{
+	public double fn(Matrix a, Matrix y){
+	    return 0.5 * Math.pow(Matrix.matsub(a, y).norm(), 2.0);
+	}
+	public Matrix delta(Matrix z, Matrix a, Matrix y){
+	    return Matrix.matmul(Matrix.matsub(a, y), activation.dfn(z));
+	}
+    }
+    class CrossEntropyCost extends Cost{
+	public double fn(Matrix a, Matrix y){
+	    return Matrix.matsub(Matrix.matmul(Matrix.matmul(-1.0, y), Function.log(a)), Matrix.matmul(Matrix.matsub(1.0, y), Function.log(Matrix.matsub(1.0, a)))).sum();
+	}
+	public Matrix delta(Matrix z, Matrix a, Matrix y){
+	    return Matrix.matsub(a, y);
+	}
     }
 }
