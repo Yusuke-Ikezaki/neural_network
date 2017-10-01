@@ -1,6 +1,6 @@
 import lib.MyMath.*;
 
-public class Net{
+public class Network{
     private int num_layers;
     private int[] sizes;
     private Matrix[] biases;
@@ -9,7 +9,7 @@ public class Net{
     private Activation activation;
     private double p_dropout;
 
-    public Net(int... sizes){
+    public Network(int... sizes){
 	num_layers = sizes.length;
 	this.sizes = sizes;
 	default_weight_initializer();
