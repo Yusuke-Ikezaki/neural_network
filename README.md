@@ -21,9 +21,9 @@ public class Sample {
 }
 ```
 
-This sample code records about 88% accuracy rate in MNIST handwritten character recognition.  
-However, it will be possible to record about 98% accuracy rate depending on the ingenuity.  
-Let's challenge how much you can increase the accuracy rate.
+This sample code scores about 88% accuracy in MNIST handwritten character recognition.  
+However, it will be possible to score about 98% accuracy depending on the ingenuity.  
+Let's challenge how much you can increase the accuracy!
 
 ## How to use
 
