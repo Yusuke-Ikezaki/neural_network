@@ -1,5 +1,6 @@
-# neural_network
-neural network by Java
+# Neural Network
+This is fully connected **only** neural network by Java.  
+For understanding neural network, you can create model and tune it.
 
 ## Sample code
 ```java:Sample.java
